@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 
 const weatherList = ref([
   {
@@ -54,13 +54,22 @@ const weatherList = ref([
   },
 ])
 
-const searchCity = ref('')
-const selectedMessage = ref('지역별 날씨 카드를 선택해 주세요.')
+const searchQuery = ref('')
+const selectedCityInfo = ref(null)
+const showExtraInfo = ref(true)
 
 const filteredWeatherList = computed(() => {
-  const keyword = searchCity.value.trim()
+  const keyword = searchQuery.value.trim()
   if (!keyword) return weatherList.value
   return weatherList.value.filter((weather) => weather.name.includes(keyword))
+})
+
+const statusMessage = computed(() => {
+  if (!selectedCityInfo.value) {
+    return '지역별 날씨 카드를 선택해 주세요.'
+  }
+
+  return `${selectedCityInfo.value.name}이(가) 선택되었습니다.`
 })
 
 const averageTemp = computed(() => {
@@ -68,12 +77,31 @@ const averageTemp = computed(() => {
   return (total / weatherList.value.length).toFixed(1)
 })
 
+const hotCityCount = computed(() => {
+  return weatherList.value.filter((weather) => weather.temp >= 25).length
+})
+
+watch(selectedCityInfo, (newCity, oldCity) => {
+  const oldName = oldCity?.name ?? '선택 없음'
+  const newName = newCity?.name ?? '선택 없음'
+  console.log(`[선택 도시 변경] ${oldName} → ${newName}`)
+  console.log(`[상태바 변경] ${statusMessage.value}`)
+})
+
+watch(showExtraInfo, (isVisible) => {
+  console.log(`[추가 정보] ${isVisible ? '표시' : '숨김'}`)
+})
+
+watchEffect(() => {
+  console.log(`[검색어 감시] 현재 검색어: ${searchQuery.value || '없음'}`)
+})
+
 const handleSearchInput = (event) => {
-  searchCity.value = event.target.value
+  searchQuery.value = event.target.value
 }
 
-const selectCity = (cityName) => {
-  selectedMessage.value = `${cityName}이(가) 선택되었습니다.`
+const selectCity = (weather) => {
+  selectedCityInfo.value = weather
 }
 
 const showDetail = (cityName, status) => {
@@ -81,7 +109,7 @@ const showDetail = (cityName, status) => {
 }
 
 const clearSearch = () => {
-  searchCity.value = ''
+  searchQuery.value = ''
 }
 </script>
 
@@ -95,6 +123,7 @@ const clearSearch = () => {
         <div class="average-temperature">
           <span>전체 평균 기온</span>
           <strong>{{ averageTemp }}℃</strong>
+          <small>더운 도시 {{ hotCityCount }}곳</small>
         </div>
       </header>
 
@@ -105,22 +134,28 @@ const clearSearch = () => {
           <input
             id="city-search"
             type="search"
-            :value="searchCity"
+            :value="searchQuery"
             @input="handleSearchInput"
             placeholder="예: 서울, 부산, 제주"
           />
-          <button v-if="searchCity" type="button" class="clear-button" @click="clearSearch">
+          <button v-if="searchQuery" type="button" class="clear-button" @click="clearSearch">
             초기화
           </button>
         </div>
         <p class="search-result">
-          검색 중인 도시: <strong>{{ searchCity || '없음' }}</strong>
+          검색 중인 도시: <strong>{{ searchQuery || '없음' }}</strong>
         </p>
       </section>
 
-      <p class="status-bar" aria-live="polite">{{ selectedMessage }}</p>
+      <p class="status-bar" aria-live="polite">{{ statusMessage }}</p>
 
-      <h2 class="section-title weather-list-title">🏙️ 지역별 날씨 현황</h2>
+      <div class="weather-list-heading">
+        <h2 class="section-title weather-list-title">🏙️ 지역별 날씨 현황</h2>
+        <label class="extra-info-toggle">
+          <input v-model="showExtraInfo" type="checkbox" />
+          추가 정보 표시
+        </label>
+      </div>
 
       <section v-if="filteredWeatherList.length" class="weather-grid" aria-label="지역별 날씨 목록">
         <article
@@ -128,8 +163,8 @@ const clearSearch = () => {
           :key="weather.id"
           class="weather-card"
           tabindex="0"
-          @click="selectCity(weather.name)"
-          @keyup.enter="selectCity(weather.name)"
+          @click="selectCity(weather)"
+          @keyup.enter="selectCity(weather)"
         >
           <div class="card-heading">
             <div>
@@ -143,7 +178,7 @@ const clearSearch = () => {
           <p v-if="weather.temp >= 25" class="temperature-label hot">🔥 더움 (25도 이상)</p>
           <p v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</p>
 
-          <dl class="weather-details">
+          <dl v-if="showExtraInfo" class="weather-details">
             <div>
               <dt>습도</dt>
               <dd>{{ weather.humidity }}%</dd>
@@ -246,6 +281,11 @@ h1 {
 .average-temperature strong {
   display: block;
 }
+.average-temperature small {
+  display: block;
+  margin-top: 2px;
+  color: #607089;
+}
 .average-temperature span {
   color: #607089;
   font-size: 13px;
@@ -308,6 +348,24 @@ h1 {
   color: #1d4f83;
   background: #dcecff;
   font-weight: 700;
+}
+.weather-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.extra-info-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #607089;
+  font-size: 14px;
+  cursor: pointer;
+}
+.extra-info-toggle input {
+  width: auto;
+  margin: 0;
 }
 .weather-grid {
   display: grid;

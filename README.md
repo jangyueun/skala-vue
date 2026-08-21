@@ -49,21 +49,69 @@ npm run dev
 → Vite 개발 서버 실행
 → index.html이 main.js 실행
 → main.js가 App.vue를 #app에 마운트
-→ App.vue가 WeatherMockup.vue를 배치
+→ App.vue가 WeatherParent.vue를 배치
+→ WeatherParent.vue가 하위 컴포넌트를 조립
 → Vue가 날씨 데이터를 카드로 렌더링
 ```
 
-`App.vue`는 제출용 날씨 컴포넌트만 화면에 표시합니다.
+`App.vue`는 Vue Router의 내비게이션과 현재 URL 화면이 표시되는 `RouterView`를 배치합니다.
 
 ```vue
-<script setup>
-import WeatherMockup from './components/practices/basic/WeatherMockup.vue'
-</script>
-
 <template>
-  <WeatherMockup />
+  <RouterLink to="/">날씨 홈</RouterLink>
+  <RouterLink to="/about">서비스 소개</RouterLink>
+  <RouterView />
 </template>
 ```
+
+## Vue Router 확장
+
+196페이지 Weather Router 과제에 맞춰 날씨 서비스를 URL별 View로 분리했습니다.
+
+| URL | View | 역할 |
+| --- | --- | --- |
+| `/` | `WeatherHomeView.vue` | 검색과 지역별 날씨 대시보드 |
+| `/weather/:cityId` | `WeatherDetailView.vue` | 동적 `cityId`에 해당하는 상세 기상관측 정보 |
+| `/about` | `WeatherAboutView.vue` | 서비스 소개 |
+| `/tips` | `WeatherTipsView.vue` | 직접 추가한 날씨별 생활 팁 |
+| 그 외 | `NotFoundView.vue` | Catch-all 404 화면 |
+
+라우트 컴포넌트는 동적 `import()`로 지연 로딩합니다. 날씨 카드의 상세보기 버튼은 `window.alert()` 대신 `router.push()`로 `/weather/도시ID`에 이동합니다. 상세 View는 `useRoute()`의 `route.params.cityId`를 읽어 공통 Mock Data에서 해당 도시를 찾습니다.
+
+```text
+상세보기 클릭
+→ WeatherCard가 click-detail 이벤트 발생
+→ WeatherHomeView의 goToDetail 실행
+→ router.push('/weather/' + weather.id)
+→ URL 변경
+→ RouterView가 WeatherDetailView로 교체
+→ route.params.cityId를 이용해 도시 정보 출력
+```
+
+## 컴포넌트 분리
+
+178페이지 Weather Component 과제에 맞춰 기존 단일 날씨 컴포넌트를 역할별로 분리했습니다.
+
+| 컴포넌트 | 역할 | 통신 방법 |
+| --- | --- | --- |
+| `WeatherParent.vue` | 전체 반응형 상태와 이벤트 처리 관리 | 하위 컴포넌트에 Props 전달 및 Emits 수신 |
+| `BaseDashboardCard.vue` | 검색·목록 영역의 공통 카드 디자인 | Default Slot으로 화면 콘텐츠 수신 |
+| `SearchBar.vue` | 검색어 표시와 입력 처리 | `searchQuery` Props, `update-query` Emits |
+| `WeatherCard.vue` | 도시 한 곳의 날씨 정보 표시 | `weather` Props, `select-card`·`click-detail` Emits |
+| `WeatherSummary.vue` | 제목·평균 기온·더운 도시 수 표시 | `averageTemp`·`hotCityCount` Props |
+
+`WeatherParent.vue`가 모든 상태의 소유자입니다. 검색 입력은 `SearchBar`의 `update-query` 이벤트로 부모에게 올라가며, 변경된 검색 결과는 다시 Props로 하위 컴포넌트에 전달됩니다. 날씨 카드의 선택과 상세보기 역시 자식이 직접 부모 상태를 수정하지 않고 Emits로 부모에게 요청합니다.
+
+```text
+WeatherParent
+├── WeatherSummary (Props)
+├── BaseDashboardCard (Default Slot)
+│   └── SearchBar (Props / Emits)
+└── BaseDashboardCard (Default Slot)
+    └── WeatherCard 여러 개 (Props / Emits)
+```
+
+각 컴포넌트의 디자인은 해당 `.vue` 파일의 `<style scoped>`에 배치해 다른 컴포넌트의 스타일에 영향을 주지 않도록 했습니다.
 
 ## 주요 구현 설명
 
@@ -247,6 +295,28 @@ const averageTemp = computed(() => {
 - 전체 도시 평균 기온
 - 키보드 Enter를 이용한 카드 선택
 - 화면 크기에 따른 3열·2열·1열 반응형 카드 배치
+
+## Composition API 확장 구현
+
+145페이지 Weather Composition 요구사항을 기존 날씨 Mockup에 확장했습니다.
+
+### 검색 결과 `computed`
+
+`searchQuery`가 변경되면 `filteredWeatherList`가 자동으로 다시 계산됩니다. 검색어가 없으면 원본 배열을 반환하고, 검색어가 있으면 도시 이름이 일치하는 항목만 반환합니다.
+
+### 선택 도시 `watch`
+
+카드를 클릭해 `selectedCityInfo`가 변경되면 `watch`가 이전 도시와 새로운 도시, 변경된 상태바 문구를 브라우저 Console에 출력합니다.
+
+### 검색어 `watchEffect`
+
+`watchEffect` 내부에서 `searchQuery`를 사용해 Vue가 검색어를 자동으로 감시하도록 했습니다. 컴포넌트 생성 시 한 번 실행되고, 검색어를 입력할 때마다 현재 검색어를 Console에 출력합니다.
+
+### 개인 반응형 기능
+
+- `showExtraInfo`: 습도·풍속·미세먼지 표시 여부를 관리하는 반응형 상태
+- `hotCityCount`: 25℃ 이상인 도시 수를 계산하는 `computed`
+- `watch(showExtraInfo)`: 추가 정보 표시 여부가 바뀔 때 Console 로그 출력
 
 ## 구현하면서 이해한 내용
 
