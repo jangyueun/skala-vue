@@ -6,6 +6,10 @@
 
 수업에서 만든 지역별 날씨 카드에서 시작해 제가 관심 있는 드라마 추천을 주제로 정했습니다. 처음에는 서울, 수원, 부산, 제주, 대전의 Mock Data만 보여 주었지만, 최종적으로 OpenWeather와 TMDB API를 연결했습니다. 이제 국내외 도시를 직접 검색하고, 해당 지역의 실제 날씨와 미세먼지를 확인한 뒤 날씨에 맞는 드라마를 볼 수 있습니다.
 
+## 배포 주소
+
+- [Weather Scene 바로가기](https://skala-vue-vert.vercel.app)
+
 ## 구현한 기능
 
 - 기본 5개 도시의 현재 날씨 출력
@@ -58,6 +62,21 @@ npm run build
 - Vue Router, Pinia
 - Axios, Element Plus, Vite
 - OpenWeather API, TMDB API
+
+## 수업에서 배운 내용과 코드 연결
+
+| 배운 내용 | 적용한 파일 | 적용 방법 |
+| --- | --- | --- |
+| 반응형 상태 `ref` | `WeatherHomeView.vue` | 날씨 목록, 검색어, 선택 도시, 로딩 상태 관리 |
+| 계산된 값 `computed` | `WeatherHomeView.vue`, `WeatherCard.vue` | 검색 결과, 평균 기온, 단위 변환, 추천 장르 계산 |
+| 반복 렌더링 `v-for` | `WeatherHomeView.vue`, `DramaRecommendation.vue` | 날씨 카드와 추천 드라마 반복 출력 |
+| 조건부 렌더링 `v-if` | `WeatherHomeView.vue`, `WeatherCard.vue` | 로딩, 빈 결과, 추가 정보, 기온 라벨 표시 |
+| 이벤트와 수식어 | `SearchBar.vue`, `WeatherCard.vue` | 입력, Enter 검색, 카드 선택, `@click.stop` 처리 |
+| Props와 Emits | `SearchBar.vue`, `WeatherCard.vue` | 부모가 데이터를 전달하고 자식이 이벤트를 전달 |
+| Slot | `BaseDashboardCard.vue` | 같은 카드 틀에 검색 영역과 목록 영역 삽입 |
+| Vue Router | `router/index.js`, `WeatherDetailView.vue` | URL별 View 분리와 동적 상세 페이지 구성 |
+| Pinia | `configStore.js` | 여러 화면에서 사용하는 섭씨·화씨 상태 관리 |
+| Axios와 비동기 처리 | `WeatherHomeView.vue`, `WeatherDetailView.vue` | 날씨, 미세먼지, 드라마 API 요청과 오류 처리 |
 
 ## 화면이 실행되는 순서
 
@@ -265,6 +284,38 @@ API 응답을 그대로 template에 모두 쓰기보다 화면에 필요한 `nam
 
 가장 중요하게 이해한 것은 반응형 데이터가 바뀌면 화면을 직접 다시 만드는 코드를 작성하지 않아도 Vue가 필요한 부분을 갱신해 준다는 점입니다.
 
+### Vercel 배포 후 새로고침 404 해결
+
+처음 Vercel에 배포했을 때 홈 화면에서 상세 페이지로 이동하는 것은 정상적으로 작동했지만, 상세 페이지에서 새로고침하면 404 오류가 발생했습니다.
+
+Vue Router의 `createWebHistory()`는 `/weather/city_01` 같은 URL을 사용합니다. 앱 안에서 이동할 때는 Vue Router가 화면을 바꿔 주지만, 새로고침하면 Vercel 서버가 이 주소에 해당하는 실제 HTML 파일을 찾습니다. 프로젝트에는 `/weather/city_01.html` 파일이 없기 때문에 404가 발생한 것이었습니다.
+
+이를 해결하기 위해 프로젝트 최상위 폴더에 `vercel.json`을 만들고, 모든 경로의 요청을 `index.html`로 전달하도록 설정했습니다.
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+설정 후에는 상세 주소로 새로고침해도 먼저 Vue 앱이 실행되고, Vue Router가 현재 URL을 확인해 알맞은 View를 표시합니다.
+
+```text
+상세 페이지 새로고침
+→ Vercel이 요청을 index.html로 전달
+→ Vue 앱 실행
+→ Vue Router가 /weather/:cityId 확인
+→ WeatherDetailView 표시
+```
+
+이 과정을 통해 앱 내부에서 이동하는 것과 브라우저에서 URL을 직접 요청하는 것은 처리 과정이 다르다는 것을 알게 되었습니다. `vercel.json`은 Vercel이 배포 후 자동으로 만드는 파일이 아니라, 배포 방식을 지정하기 위해 개발자가 프로젝트에 직접 추가하는 설정 파일입니다.
+
 ## 앞으로 개선하고 싶은 점
 
 - 같은 이름의 도시가 여러 개일 때 국가를 선택하는 기능
@@ -272,3 +323,13 @@ API 응답을 그대로 template에 모두 쓰기보다 화면에 필요한 `nam
 - 날짜별 추천 기록 저장
 - 강수 확률과 체감온도 추가
 - API 오류 종류에 따른 자세한 안내
+
+## 최종 확인
+
+- `npm run build` 성공
+- OpenWeather 도시 검색 API 정상 응답
+- 현재 날씨와 시간대별 예보 API 정상 응답
+- PM2.5 대기오염 API 정상 응답
+- TMDB 한국 드라마 조회 API 정상 응답
+- Vercel 홈 화면과 상세 경로 정상 응답
+- 상세 페이지 새로고침 시 404 해결
