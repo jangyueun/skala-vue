@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, watchEffect } from 'vue'
+import { ref } from 'vue'
 
 const weatherList = ref([
   {
@@ -55,53 +55,15 @@ const weatherList = ref([
 ])
 
 const searchQuery = ref('')
-const selectedCityInfo = ref(null)
+const selectedCityInfo = ref('지역별 날씨 카드를 선택해 주세요.')
 const showExtraInfo = ref(true)
-
-const filteredWeatherList = computed(() => {
-  const keyword = searchQuery.value.trim()
-  if (!keyword) return weatherList.value
-  return weatherList.value.filter((weather) => weather.name.includes(keyword))
-})
-
-const statusMessage = computed(() => {
-  if (!selectedCityInfo.value) {
-    return '지역별 날씨 카드를 선택해 주세요.'
-  }
-
-  return `${selectedCityInfo.value.name}이(가) 선택되었습니다.`
-})
-
-const averageTemp = computed(() => {
-  const total = weatherList.value.reduce((sum, weather) => sum + weather.temp, 0)
-  return (total / weatherList.value.length).toFixed(1)
-})
-
-const hotCityCount = computed(() => {
-  return weatherList.value.filter((weather) => weather.temp >= 25).length
-})
-
-watch(selectedCityInfo, (newCity, oldCity) => {
-  const oldName = oldCity?.name ?? '선택 없음'
-  const newName = newCity?.name ?? '선택 없음'
-  console.log(`[선택 도시 변경] ${oldName} → ${newName}`)
-  console.log(`[상태바 변경] ${statusMessage.value}`)
-})
-
-watch(showExtraInfo, (isVisible) => {
-  console.log(`[추가 정보] ${isVisible ? '표시' : '숨김'}`)
-})
-
-watchEffect(() => {
-  console.log(`[검색어 감시] 현재 검색어: ${searchQuery.value || '없음'}`)
-})
 
 const handleSearchInput = (event) => {
   searchQuery.value = event.target.value
 }
 
 const selectCity = (weather) => {
-  selectedCityInfo.value = weather
+  selectedCityInfo.value = `${weather.name}이(가) 선택되었습니다.`
 }
 
 const showDetail = (cityName, status) => {
@@ -117,14 +79,7 @@ const clearSearch = () => {
   <main class="weather-page">
     <section class="weather-dashboard">
       <header class="dashboard-header">
-        <div>
-          <h1>🌤️ 과제 1: 날씨 (Mockup)</h1>
-        </div>
-        <div class="average-temperature">
-          <span>전체 평균 기온</span>
-          <strong>{{ averageTemp }}℃</strong>
-          <small>더운 도시 {{ hotCityCount }}곳</small>
-        </div>
+        <h1>🌤️ 과제 1: 날씨 (Mockup)</h1>
       </header>
 
       <section class="search-section" aria-label="도시 검색">
@@ -147,7 +102,7 @@ const clearSearch = () => {
         </p>
       </section>
 
-      <p class="status-bar" aria-live="polite">{{ statusMessage }}</p>
+      <p class="status-bar" aria-live="polite">{{ selectedCityInfo }}</p>
 
       <div class="weather-list-heading">
         <h2 class="section-title weather-list-title">🏙️ 지역별 날씨 현황</h2>
@@ -157,9 +112,9 @@ const clearSearch = () => {
         </label>
       </div>
 
-      <section v-if="filteredWeatherList.length" class="weather-grid" aria-label="지역별 날씨 목록">
+      <section class="weather-grid" aria-label="지역별 날씨 목록">
         <article
-          v-for="weather in filteredWeatherList"
+          v-for="weather in weatherList"
           :key="weather.id"
           class="weather-card"
           tabindex="0"
@@ -203,11 +158,6 @@ const clearSearch = () => {
         </article>
       </section>
 
-      <section v-else class="empty-state">
-        <span aria-hidden="true">🔍</span>
-        <h2>검색 결과가 없습니다.</h2>
-        <p>다른 도시 이름을 입력해 보세요.</p>
-      </section>
     </section>
   </main>
 </template>

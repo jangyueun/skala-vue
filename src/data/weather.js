@@ -50,3 +50,13 @@ export const weatherData = [
     fineDust: '나쁨',
   },
 ]
+
+export const getFineDustText = (pm25) => {
+  const value = Math.round(pm25)
+
+  if (value < 10) return `좋음 (${value}㎍/㎥)`
+  if (value < 25) return `양호 (${value}㎍/㎥)`
+  if (value < 50) return `보통 (${value}㎍/㎥)`
+  if (value < 75) return `나쁨 (${value}㎍/㎥)`
+  return `매우 나쁨 (${value}㎍/㎥)`
+}

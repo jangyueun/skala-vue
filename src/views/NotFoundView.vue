@@ -13,17 +13,17 @@
   place-content: center;
   padding: 24px;
   text-align: center;
-  color: #152238;
-  background: #edf3f9;
+  color: #392b31;
+  background: #f4eee9;
 }
 .not-found p {
   margin: 0;
-  color: #2874c6;
+  color: #a3543c;
   font-size: 72px;
   font-weight: 900;
 }
 a {
-  color: #2874c6;
+  color: #6f293a;
   font-weight: 700;
 }
 </style>

@@ -19,6 +19,10 @@ export default defineConfig([
         ...globals.browser,
       },
     },
+    rules: {
+      eqeqeq: ['error', 'always'],
+      'no-console': 'off',
+    },
   },
 
   js.configs.recommended,

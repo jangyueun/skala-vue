@@ -1,8 +1,23 @@
-# 🌤️ 과제 1: 날씨 Mockup
+# Weather Scene
 
-Vue 3의 Composition API를 사용해 지역별 날씨 정보를 카드 형태로 보여주는 Mockup을 구현했습니다.
+> 오늘 날씨엔, 이 드라마
 
-날씨 데이터 반복 렌더링, 기온에 따른 조건부 라벨, 한글 도시 검색, 카드 선택 이벤트, 상세보기 버튼의 이벤트 버블링 차단을 구현했습니다. 교재의 기본 요구사항에 도시 검색 필터, 평균 기온, 추가 날씨 정보와 반응형 레이아웃을 더했습니다.
+날씨를 확인한 뒤 지금 분위기와 어울리는 한국 드라마를 추천해 주는 Vue 웹사이트입니다.
+
+수업에서 만든 지역별 날씨 카드에서 시작해 제가 관심 있는 드라마 추천을 주제로 정했습니다. 처음에는 서울, 수원, 부산, 제주, 대전의 Mock Data만 보여 주었지만, 최종적으로 OpenWeather와 TMDB API를 연결했습니다. 이제 국내외 도시를 직접 검색하고, 해당 지역의 실제 날씨와 미세먼지를 확인한 뒤 날씨에 맞는 드라마를 볼 수 있습니다.
+
+## 구현한 기능
+
+- 기본 5개 도시의 현재 날씨 출력
+- 국내외 도시 이름 검색
+- 현재 기온, 날씨 상태, 습도, 풍속 표시
+- PM2.5 미세먼지 수치와 단계 표시
+- 날씨와 기온에 따른 추천 장르 결정
+- 추천 장르에 맞는 한국 드라마 3편 조회
+- 도시별 상세 페이지와 시간대별 예보
+- 섭씨와 화씨 단위 변경
+- 화면 크기에 따른 반응형 카드 배치
+- API 요청 실패 시 Mock Data 표시
 
 ## 실행 방법
 
@@ -12,398 +27,248 @@ Vue 3의 Composition API를 사용해 지역별 날씨 정보를 카드 형태�
 npm install
 ```
 
-### 2. 개발 서버 실행
+### 2. 환경 변수 설정
+
+프로젝트 최상위 폴더에 `.env` 파일을 만들고 아래 값을 넣습니다.
+
+```env
+VITE_OPENWEATHER_API_KEY=OpenWeather_API_KEY
+VITE_TMDB_ACCESS_TOKEN=TMDB_Read_Access_Token
+```
+
+API 키와 토큰이 들어 있는 `.env`는 GitHub에 올리지 않습니다.
+
+### 3. 개발 서버 실행
 
 ```sh
 npm run dev
 ```
 
-기본 접속 주소는 다음과 같습니다.
+터미널에 표시되는 주소로 접속합니다. 기본 주소는 `http://localhost:5173`입니다.
 
-```text
-http://localhost:5173
-```
-
-### 3. 코드 검사 및 빌드
+### 4. 빌드 확인
 
 ```sh
-npm run lint
 npm run build
 ```
 
-## 과제 요구사항 구현
+## 사용한 기술
 
-| 번호 | 요구사항 | 구현 방법 |
-| --- | --- | --- |
-| 1 | 날씨 배열 반복 출력 | `weatherList`를 `v-for`로 반복하고 `weather.id`를 `:key`로 사용했습니다. |
-| 2 | 기온별 조건부 라벨 | `v-if`와 `v-else`로 25℃ 이상은 더움, 미만은 선선함을 표시했습니다. |
-| 3 | 한글 도시 입력 | 입력창에 `:value`와 `@input`을 연결해 한글 검색어를 반응형 변수에 저장했습니다. |
-| 4 | 카드 선택 이벤트 | 카드를 클릭하면 선택한 도시 이름이 상태바에 표시됩니다. |
-| 4 | 이벤트 버블링 차단 | 상세보기 버튼에 `@click.stop`을 적용해 부모 카드 이벤트가 실행되지 않게 했습니다. |
-| 5 | 개인 데이터와 Mockup | 제주·대전, 아이콘, 습도, 풍속, 미세먼지와 추가 UI를 구현했습니다. |
+- Vue 3 Composition API
+- Vue Router, Pinia
+- Axios, Element Plus, Vite
+- OpenWeather API, TMDB API
 
-## 화면이 만들어지는 흐름
+## 화면이 실행되는 순서
+
+처음에는 Vue 프로젝트에서 어떤 파일부터 실행되는지 헷갈렸습니다. 이번 프로젝트를 만들면서 아래 순서로 화면이 만들어진다는 것을 이해했습니다.
 
 ```text
 npm run dev
 → Vite 개발 서버 실행
-→ index.html이 main.js 실행
-→ main.js가 App.vue를 #app에 마운트
-→ App.vue가 WeatherParent.vue를 배치
-→ WeatherParent.vue가 하위 컴포넌트를 조립
-→ Vue가 날씨 데이터를 카드로 렌더링
+→ index.html 로드
+→ main.js 실행
+→ Vue 앱, Router, Pinia, Element Plus 등록
+→ App.vue를 #app에 연결
+→ 현재 URL에 맞는 View를 RouterView에 출력
+→ View가 필요한 컴포넌트를 조립
 ```
 
-`App.vue`는 Vue Router의 내비게이션과 현재 URL 화면이 표시되는 `RouterView`를 배치합니다.
+`index.html`은 Vue 화면이 들어갈 `<div id="app">`을 가지고 있습니다. `main.js`는 앱을 시작하는 파일이고, `App.vue`는 모든 페이지에서 공통으로 보이는 헤더와 `RouterView`를 가지고 있습니다.
 
-```vue
-<template>
-  <RouterLink to="/">날씨 홈</RouterLink>
-  <RouterLink to="/about">서비스 소개</RouterLink>
-  <RouterView />
-</template>
-```
-
-## Vue Router 확장
-
-196페이지 Weather Router 과제에 맞춰 날씨 서비스를 URL별 View로 분리했습니다.
-
-| URL | View | 역할 |
-| --- | --- | --- |
-| `/` | `WeatherHomeView.vue` | 검색과 지역별 날씨 대시보드 |
-| `/weather/:cityId` | `WeatherDetailView.vue` | 동적 `cityId`에 해당하는 상세 기상관측 정보 |
-| `/about` | `WeatherAboutView.vue` | 서비스 소개 |
-| `/tips` | `WeatherTipsView.vue` | 직접 추가한 날씨별 생활 팁 |
-| 그 외 | `NotFoundView.vue` | Catch-all 404 화면 |
-
-라우트 컴포넌트는 동적 `import()`로 지연 로딩합니다. 날씨 카드의 상세보기 버튼은 `window.alert()` 대신 `router.push()`로 `/weather/도시ID`에 이동합니다. 상세 View는 `useRoute()`의 `route.params.cityId`를 읽어 공통 Mock Data에서 해당 도시를 찾습니다.
+## 폴더와 파일 역할
 
 ```text
-상세보기 클릭
-→ WeatherCard가 click-detail 이벤트 발생
-→ WeatherHomeView의 goToDetail 실행
-→ router.push('/weather/' + weather.id)
-→ URL 변경
-→ RouterView가 WeatherDetailView로 교체
-→ route.params.cityId를 이용해 도시 정보 출력
+src
+├── App.vue                 # 공통 헤더와 RouterView
+├── main.js                 # Vue 앱 시작
+├── router/index.js         # URL과 View 연결
+├── stores/configStore.js   # 섭씨/화씨 공통 상태
+├── data
+│   ├── weather.js          # 기본 날씨와 미세먼지 단계 함수
+│   └── dramas.js           # 추천 기준과 Mock 드라마
+├── views
+│   ├── WeatherHomeView.vue
+│   ├── WeatherDetailView.vue
+│   ├── WeatherTipsView.vue
+│   ├── WeatherAboutView.vue
+│   └── NotFoundView.vue
+└── components/exercise
+    ├── SearchBar.vue
+    ├── WeatherCard.vue
+    ├── DramaRecommendation.vue
+    ├── BaseDashboardCard.vue
+    └── UnitToggler.vue
 ```
 
-## 컴포넌트 분리
+`views`에는 URL 하나를 담당하는 큰 화면을 넣고, `components`에는 View 안에서 조립해서 사용하는 작은 기능을 넣었습니다. 예를 들어 `/`에서는 `WeatherHomeView`가 나오고 그 안에서 `SearchBar`와 여러 개의 `WeatherCard`를 사용합니다.
 
-178페이지 Weather Component 과제에 맞춰 기존 단일 날씨 컴포넌트를 역할별로 분리했습니다.
+## Vue에서 배운 내용을 적용한 부분
 
-| 컴포넌트 | 역할 | 통신 방법 |
-| --- | --- | --- |
-| `WeatherParent.vue` | 전체 반응형 상태와 이벤트 처리 관리 | 하위 컴포넌트에 Props 전달 및 Emits 수신 |
-| `BaseDashboardCard.vue` | 검색·목록 영역의 공통 카드 디자인 | Default Slot으로 화면 콘텐츠 수신 |
-| `SearchBar.vue` | 검색어 표시와 입력 처리 | `searchQuery` Props, `update-query` Emits |
-| `WeatherCard.vue` | 도시 한 곳의 날씨 정보 표시 | `weather` Props, `select-card`·`click-detail` Emits |
-| `WeatherSummary.vue` | 제목·평균 기온·더운 도시 수 표시 | `averageTemp`·`hotCityCount` Props |
+### 1. `ref`로 변하는 값 관리하기
 
-`WeatherParent.vue`가 모든 상태의 소유자입니다. 검색 입력은 `SearchBar`의 `update-query` 이벤트로 부모에게 올라가며, 변경된 검색 결과는 다시 Props로 하위 컴포넌트에 전달됩니다. 날씨 카드의 선택과 상세보기 역시 자식이 직접 부모 상태를 수정하지 않고 Emits로 부모에게 요청합니다.
-
-```text
-WeatherParent
-├── WeatherSummary (Props)
-├── BaseDashboardCard (Default Slot)
-│   └── SearchBar (Props / Emits)
-└── BaseDashboardCard (Default Slot)
-    └── WeatherCard 여러 개 (Props / Emits)
-```
-
-각 컴포넌트의 디자인은 해당 `.vue` 파일의 `<style scoped>`에 배치해 다른 컴포넌트의 스타일에 영향을 주지 않도록 했습니다.
-
-## 주요 구현 설명
-
-### 1. 반응형 날씨 데이터
-
-날씨 목록과 검색어, 카드 선택 메시지를 `ref`로 선언했습니다.
+검색어, 날씨 목록, 선택된 도시, 로딩 상태처럼 실행 중에 달라지는 값은 `ref`로 만들었습니다.
 
 ```js
-const weatherList = ref([
-  { id: 'city_01', name: '서울', temp: 28, status: '맑음' },
-  { id: 'city_02', name: '수원', temp: 24, status: '비' },
-  { id: 'city_03', name: '부산', temp: 26, status: '구름' },
-])
-
-const searchCity = ref('')
-const selectedMessage = ref('지역별 날씨 카드를 선택해 주세요.')
+const weatherList = ref(weatherData)
+const searchQuery = ref('')
+const selectedCity = ref(null)
+const isLoading = ref(false)
 ```
 
-`ref` 값이 변경되면 Vue가 변화를 감지하고 해당 값을 사용하는 화면을 갱신합니다. JavaScript 영역에서는 `.value`로 실제 값에 접근하고, `<template>`에서는 Vue가 `.value`를 자동으로 처리합니다.
+JavaScript에서는 `.value`로 접근하고 template에서는 바로 사용합니다. `ref` 값이 달라지면 Vue가 해당 값을 사용하는 화면을 다시 그려 줍니다. 이것이 반응형이라는 뜻이라는 것을 알게 되었습니다.
 
-```js
-searchCity.value = event.target.value
-```
+### 2. `computed`로 계산된 값 만들기
 
-```vue
-<p>{{ searchCity }}</p>
-```
-
-### 2. 날씨 카드 반복 렌더링
-
-`v-for`로 검색 결과 배열의 각 도시를 카드로 출력했습니다.
-
-```vue
-<article
-  v-for="weather in filteredWeatherList"
-  :key="weather.id"
->
-  {{ weather.name }}
-</article>
-```
-
-`weather`는 현재 반복 중인 도시 객체입니다. 배열에 도시가 5개 있으면 카드도 5개 만들어집니다. `:key`에는 배열 순서가 아닌 각 도시의 고유한 `id`를 사용했습니다.
-
-### 3. 기온별 조건부 렌더링
-
-현재 도시의 기온이 25℃ 이상인지 검사해 서로 다른 라벨을 표시합니다.
-
-```vue
-<p v-if="weather.temp >= 25">
-  🔥 더움 (25도 이상)
-</p>
-
-<p v-else>
-  ❄️ 선선함 (25도 미만)
-</p>
-```
-
-서울은 28℃이므로 더움, 수원은 24℃이므로 선선함 라벨이 나타납니다.
-
-### 4. 한글 도시 검색
-
-교재 요구사항에 맞춰 `v-model` 대신 `:value`와 `@input`을 사용했습니다.
-
-```vue
-<input
-  :value="searchCity"
-  @input="handleSearchInput"
-  placeholder="예: 서울, 부산, 제주"
-/>
-```
-
-```js
-const handleSearchInput = (event) => {
-  searchCity.value = event.target.value
-}
-```
-
-사용자가 입력하면 브라우저가 이벤트 객체를 전달하고, `event.target.value`에서 현재 입력값을 가져와 `searchCity`에 저장합니다.
-
-```text
-한글 도시명 입력
-→ input 이벤트 발생
-→ handleSearchInput 실행
-→ searchCity 변경
-→ Vue가 검색 결과와 화면 갱신
-```
-
-### 5. 도시 검색 필터
-
-교재에서는 입력한 도시명을 출력하도록 요구했습니다. 이를 확장해 검색어가 포함된 도시 카드만 남도록 구현했습니다.
+검색 결과와 전체 평균 기온은 원본 데이터를 직접 바꾸지 않고 `computed`로 계산했습니다.
 
 ```js
 const filteredWeatherList = computed(() => {
-  const keyword = searchCity.value.trim()
-
-  if (!keyword) {
-    return weatherList.value
-  }
-
+  const keyword = searchQuery.value.trim()
+  if (!keyword) return weatherList.value
   return weatherList.value.filter((weather) =>
     weather.name.includes(keyword),
   )
 })
 ```
 
-- `trim()`은 검색어 양쪽 공백을 제거합니다.
-- `filter()`는 조건에 맞는 도시만 골라 새로운 배열을 만듭니다.
-- `includes()`는 도시 이름에 검색어가 포함됐는지 확인합니다.
-- `computed`는 검색어가 바뀔 때 검색 결과를 다시 계산합니다.
+검색어나 날씨 목록이 바뀌면 결과도 자동으로 다시 계산됩니다.
 
-### 6. 카드 선택 이벤트
+### 3. `v-for`와 `v-if`
 
-날씨 카드를 클릭하면 도시 이름을 함수에 전달합니다.
+`v-for`로 배열에 있는 도시 수만큼 `WeatherCard`를 반복했습니다. `:key`에는 각 도시의 고유한 `id`를 사용했습니다.
 
 ```vue
-<article @click="selectCity(weather.name)">
+<WeatherCard
+  v-for="weather in filteredWeatherList"
+  :key="weather.id"
+  :weather="weather"
+/>
 ```
 
-```js
-const selectCity = (cityName) => {
-  selectedMessage.value = `${cityName}이(가) 선택되었습니다.`
-}
-```
+로딩 중, 검색 결과가 있을 때, 결과가 없을 때는 `v-if`, `v-else-if`, `v-else`로 서로 다른 화면을 보여 줍니다.
 
-`selectedMessage`가 `ref`이므로 값이 변경되면 상태바도 자동으로 갱신됩니다.
+### 4. Props와 Emits
 
-### 7. 상세보기와 이벤트 버블링 차단
-
-상세보기 버튼은 클릭 가능한 날씨 카드 안에 있습니다.
-
-```vue
-<button
-  @click.stop="showDetail(weather.name, weather.status)"
->
-  상세보기
-</button>
-```
-
-`.stop`이 없으면 상세보기 버튼을 클릭한 후 이벤트가 부모 카드까지 올라가 카드 선택 이벤트도 실행됩니다. `@click.stop`으로 이벤트 전파를 차단해 알림창만 표시되도록 했습니다.
-
-```js
-const showDetail = (cityName, status) => {
-  window.alert(
-    `${cityName}의 현재 날씨는 [${status}] 상태입니다.`,
-  )
-}
-```
+`WeatherHomeView`가 전체 날씨 목록을 가지고 있고 `WeatherCard`는 Props로 받은 도시 한 곳을 출력합니다. 자식은 부모 데이터를 직접 바꾸지 않고 카드 선택이나 상세보기 요청을 Emits로 부모에게 알려 줍니다.
 
 ```text
-상세보기 클릭
-→ showDetail 실행
-→ 날씨 알림 표시
-→ .stop이 부모 카드로의 이벤트 전달 차단
+WeatherHomeView
+→ weather 객체를 Props로 전달
+→ WeatherCard가 화면 출력
+→ 클릭 이벤트를 Emits로 전달
+→ WeatherHomeView가 선택 또는 이동 처리
 ```
 
-### 8. 전체 평균 기온
+상세 버튼의 `@click.stop`은 버튼의 클릭이 부모 카드까지 올라가는 이벤트 버블링을 막습니다.
 
-`computed`와 JavaScript 배열의 `reduce()`를 이용해 전체 도시의 평균 기온을 계산했습니다.
+### 5. Slot
 
-```js
-const averageTemp = computed(() => {
-  const total = weatherList.value.reduce(
-    (sum, weather) => sum + weather.temp,
-    0,
-  )
+`BaseDashboardCard.vue`에는 공통 카드 모양과 `<slot />`만 만들었습니다. 부모에서 검색창 또는 날씨 목록을 태그 사이에 넣으면 Slot 위치에 표시됩니다. 같은 틀을 여러 번 재사용하면서 내용은 다르게 만들 수 있었습니다.
 
-  return (total / weatherList.value.length).toFixed(1)
-})
-```
+### 6. Vue Router
 
-`reduce()`로 모든 도시의 기온을 더하고 도시 수로 나눈 뒤, `toFixed(1)`로 소수점 첫째 자리까지 표시했습니다.
-
-## 기본 요구사항 외에 추가한 기능
-
-- 제주와 대전 날씨 데이터
-- 날씨 상태 아이콘
-- 습도, 풍속, 미세먼지 정보
-- 입력한 검색어에 따른 카드 필터링
-- 검색어 초기화 버튼
-- 검색 결과 없음 안내 화면
-- 전체 도시 평균 기온
-- 키보드 Enter를 이용한 카드 선택
-- 화면 크기에 따른 3열·2열·1열 반응형 카드 배치
-
-## Composition API 확장 구현
-
-145페이지 Weather Composition 요구사항을 기존 날씨 Mockup에 확장했습니다.
-
-### 검색 결과 `computed`
-
-`searchQuery`가 변경되면 `filteredWeatherList`가 자동으로 다시 계산됩니다. 검색어가 없으면 원본 배열을 반환하고, 검색어가 있으면 도시 이름이 일치하는 항목만 반환합니다.
-
-### 선택 도시 `watch`
-
-카드를 클릭해 `selectedCityInfo`가 변경되면 `watch`가 이전 도시와 새로운 도시, 변경된 상태바 문구를 브라우저 Console에 출력합니다.
-
-### 검색어 `watchEffect`
-
-`watchEffect` 내부에서 `searchQuery`를 사용해 Vue가 검색어를 자동으로 감시하도록 했습니다. 컴포넌트 생성 시 한 번 실행되고, 검색어를 입력할 때마다 현재 검색어를 Console에 출력합니다.
-
-### 개인 반응형 기능
-
-- `showExtraInfo`: 습도·풍속·미세먼지 표시 여부를 관리하는 반응형 상태
-- `hotCityCount`: 25℃ 이상인 도시 수를 계산하는 `computed`
-- `watch(showExtraInfo)`: 추가 정보 표시 여부가 바뀔 때 Console 로그 출력
-
-## 구현하면서 이해한 내용
-
-### `ref`와 화면 갱신
-
-검색어와 상태 메시지를 `ref`로 선언했습니다. 값이 변경되면 Vue가 연결된 화면을 다시 렌더링한다는 것을 확인했습니다.
-
-### `computed`와 원본 데이터
-
-검색 결과와 평균 기온은 원본 `weatherList`를 직접 변경하지 않고 `computed`로 계산했습니다. 의존하는 값이 변경될 때만 계산 결과가 갱신됩니다.
-
-### `v-for`와 `:key`
-
-`v-for`로 배열 데이터를 화면에 반복 출력하고, 각 카드의 고유한 `id`를 `:key`로 사용해 Vue가 항목을 구분하도록 했습니다.
-
-### 조건부 렌더링
-
-`v-if`와 `v-else`를 사용하면 JavaScript 조건 결과에 따라 서로 다른 HTML 요소를 렌더링할 수 있다는 것을 확인했습니다.
-
-### 이벤트 버블링
-
-자식 버튼의 클릭 이벤트가 부모 카드로 전달될 수 있으며, Vue의 `.stop` 수식어로 이를 간단하게 차단할 수 있다는 것을 확인했습니다.
-
-### Vue 반응형과 반응형 웹의 차이
-
-- Vue 반응형 데이터는 데이터 변경에 따라 화면이 갱신되는 것을 의미합니다.
-- 반응형 웹 디자인은 화면 너비에 따라 카드 배치가 바뀌는 것을 의미합니다.
-
-## 시행착오와 해결
-
-### 날씨 화면이 왼쪽 절반에만 표시된 문제
-
-Vue 기본 템플릿의 `main.css`에 `#app`을 2열 Grid로 만드는 설정이 남아 있어 날씨 화면이 첫 번째 열에만 표시됐습니다.
-
-```css
-#app {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-```
-
-`#app`이 화면 전체 너비를 사용하도록 다음과 같이 수정했습니다.
-
-```css
-#app {
-  width: 100%;
-  min-height: 100vh;
-}
-```
-
-이 과정을 통해 컴포넌트 자체의 CSS뿐 아니라 부모 요소의 레이아웃도 화면 배치에 영향을 준다는 점을 확인했습니다.
-
-## 프로젝트 구조
+| URL | 화면 | 역할 |
+| --- | --- | --- |
+| `/` | `WeatherHomeView.vue` | 도시 검색과 날씨 카드 |
+| `/weather/:cityId` | `WeatherDetailView.vue` | 날씨와 추천작 상세 정보 |
+| `/tips` | `WeatherTipsView.vue` | 추천 기준 설명 |
+| `/about` | `WeatherAboutView.vue` | 프로젝트 소개 |
+| 그 외 주소 | `NotFoundView.vue` | 404 화면 |
 
 ```text
-src/
-├─ App.vue
-├─ main.js
-├─ assets/
-│  ├─ base.css
-│  └─ main.css
-└─ components/
-   └─ practices/
-      └─ basic/
-         ├─ WeatherMockup.vue
-         └─ 기타 수업 실습 파일
+상세 버튼 클릭
+→ WeatherCard가 click-detail 이벤트 발생
+→ WeatherHomeView의 goToDetail 실행
+→ router.push()로 URL 변경
+→ RouterView가 WeatherDetailView로 변경
+→ route의 도시 정보로 API 호출
 ```
 
-- `App.vue`: 제출용 날씨 컴포넌트를 연결하는 루트 컴포넌트
-- `WeatherMockup.vue`: 날씨 데이터, 검색, 이벤트, 화면과 스타일 구현
-- `main.css`: 프로젝트 전체 레이아웃 설정
-- 기타 실습 파일: 수업에서 배운 Vue 문법을 연습한 코드이며 제출 화면에는 연결하지 않았습니다.
+기본 도시는 URL의 `cityId`로 찾고, 새로 검색한 도시는 위도와 경도를 query로 전달해서 상세 페이지에서도 같은 위치의 날씨를 조회합니다.
 
-## 동작 확인 방법
+### 7. Pinia
 
-1. 첫 화면에 서울, 수원, 부산, 제주, 대전 카드가 나타나는지 확인합니다.
-2. 검색창에 `서울`을 입력해 서울 카드만 남는지 확인합니다.
-3. 초기화 버튼을 눌러 전체 카드가 다시 나타나는지 확인합니다.
-4. 날씨 카드를 클릭해 상태바에 선택한 도시가 표시되는지 확인합니다.
-5. 상세보기 버튼을 눌러 날씨 알림만 나타나는지 확인합니다.
-6. 존재하지 않는 도시를 검색해 결과 없음 화면을 확인합니다.
-7. 브라우저 너비를 줄여 카드가 3열, 2열, 1열로 변경되는지 확인합니다.
+섭씨와 화씨는 홈과 상세 페이지에서 모두 사용하는 값이라 `configStore.js`에 넣었습니다. 헤더에서 단위를 바꾸면 Store의 값이 변경되고, Store를 사용하는 모든 화면의 단위가 함께 바뀝니다.
 
-## 사용 기술
+## API 연결 과정
 
-- Vue 3 Composition API
-- JavaScript
-- Vite
-- HTML5
-- CSS3
+### OpenWeather
+
+```text
+도시 이름 입력
+→ Geocoding API로 위도와 경도 검색
+→ 좌표로 현재 날씨 API 호출
+→ 좌표로 대기오염 API 호출
+→ 필요한 형태로 데이터를 정리
+→ 검색 결과를 날씨 목록 맨 앞에 추가
+```
+
+같은 이름의 도시가 여러 나라에 있을 수 있어 카드에 국가 코드도 표시했습니다. 사용한 데이터는 다음과 같습니다.
+
+- `main.temp`: 현재 기온
+- `weather[0].description`: 날씨 상태
+- `main.humidity`: 습도
+- `wind.speed`: 풍속
+- `components.pm2_5`: 초미세먼지 농도
+
+PM2.5 값은 `weather.js`의 `getFineDustText()`에서 좋음부터 매우 나쁨까지 구분합니다.
+
+### TMDB
+
+```text
+현재 날씨와 기온 확인
+→ 추천 장르와 TMDB 장르 ID 결정
+→ 한국 작품만 조회
+→ 인기도순 결과 중 3편 표시
+```
+
+API 호출에는 Axios와 `async/await`를 사용했습니다. 호출 중에는 로딩 화면을 보여 주고, 요청이 실패하거나 토큰이 없으면 `catch`와 Mock Data를 이용해 화면이 비어 있지 않도록 했습니다.
+
+## 드라마 추천 기준
+
+처음에는 날씨 상태 글자만 확인했습니다. 하지만 온도가 달라도 날씨 설명에 `흐림`이 들어가면 모두 미스터리가 추천되는 문제가 있었습니다. 그래서 비와 눈처럼 뚜렷한 날씨를 먼저 확인하고 고온과 저온도 함께 반영하도록 수정했습니다.
+
+| 날씨 또는 기온 | 추천 장르 |
+| --- | --- |
+| 눈 | 판타지 |
+| 비, 소나기, 이슬비 | 감성 드라마 |
+| 28℃ 이상 | 액션 & 어드벤처 |
+| 10℃ 이하 | 힐링 드라마 |
+| 맑음 | 기분 좋은 코미디 |
+| 구름, 흐림, 안개 | 미스터리 |
+| 그 외 23℃ 이상 | 기분 좋은 코미디 |
+| 나머지 | 감성 드라마 |
+
+추천 기준은 `src/data/dramas.js`로 분리했습니다. 화면 코드와 규칙을 나누어 두면 나중에 기준을 수정하기 쉽다는 것을 알게 되었습니다.
+
+## 기본 과제에서 추가한 부분
+
+- 기본 날씨 카드 주제를 날씨별 드라마 추천으로 변경
+- Mock Data에서 실제 API 데이터로 확장
+- 기본 5개 도시 외 국내외 도시 검색
+- PM2.5 대기오염 API 연결
+- 날씨 상태와 기온을 함께 사용하는 추천 규칙
+- TMDB 한국 드라마 추천
+- Router를 이용한 홈/상세 화면 분리
+- Pinia를 이용한 전체 화면 단위 변경
+- 로딩, API 오류, 검색 결과 없음 화면
+- 모바일 반응형 CSS
+
+## 만들면서 알게 된 점
+
+처음에는 `.js`와 `.vue` 파일을 언제 사용하는지 헷갈렸습니다. 화면이 필요한 코드는 `.vue`에 작성하고, 라우터 설정, 공통 데이터, 추천 규칙, Store처럼 화면 모양이 필요 없는 코드는 `.js`로 분리했습니다.
+
+API 응답을 그대로 template에 모두 쓰기보다 화면에 필요한 `name`, `temp`, `status` 등의 형태로 정리한 뒤 컴포넌트에 전달하는 편이 이해하기 쉬웠습니다.
+
+미세먼지 API는 도시 이름이 아니라 좌표가 필요했습니다. 그래서 현재 날씨에서 좌표를 받은 다음 대기오염 API를 호출하도록 순서를 정했습니다. 비동기 코드는 실행 순서와 로딩 상태를 함께 생각해야 한다는 점을 알게 되었습니다.
+
+가장 중요하게 이해한 것은 반응형 데이터가 바뀌면 화면을 직접 다시 만드는 코드를 작성하지 않아도 Vue가 필요한 부분을 갱신해 준다는 점입니다.
+
+## 앞으로 개선하고 싶은 점
+
+- 같은 이름의 도시가 여러 개일 때 국가를 선택하는 기능
+- 검색한 도시 즐겨찾기
+- 날짜별 추천 기록 저장
+- 강수 확률과 체감온도 추가
+- API 오류 종류에 따른 자세한 안내
