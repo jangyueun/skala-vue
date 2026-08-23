@@ -65,18 +65,18 @@ npm run build
 
 ## 수업에서 배운 내용과 코드 연결
 
-| 배운 내용 | 적용한 파일 | 적용 방법 |
-| --- | --- | --- |
-| 반응형 상태 `ref` | `WeatherHomeView.vue` | 날씨 목록, 검색어, 선택 도시, 로딩 상태 관리 |
-| 계산된 값 `computed` | `WeatherHomeView.vue`, `WeatherCard.vue` | 검색 결과, 평균 기온, 단위 변환, 추천 장르 계산 |
-| 반복 렌더링 `v-for` | `WeatherHomeView.vue`, `DramaRecommendation.vue` | 날씨 카드와 추천 드라마 반복 출력 |
-| 조건부 렌더링 `v-if` | `WeatherHomeView.vue`, `WeatherCard.vue` | 로딩, 빈 결과, 추가 정보, 기온 라벨 표시 |
-| 이벤트와 수식어 | `SearchBar.vue`, `WeatherCard.vue` | 입력, Enter 검색, 카드 선택, `@click.stop` 처리 |
-| Props와 Emits | `SearchBar.vue`, `WeatherCard.vue` | 부모가 데이터를 전달하고 자식이 이벤트를 전달 |
-| Slot | `BaseDashboardCard.vue` | 같은 카드 틀에 검색 영역과 목록 영역 삽입 |
-| Vue Router | `router/index.js`, `WeatherDetailView.vue` | URL별 View 분리와 동적 상세 페이지 구성 |
-| Pinia | `configStore.js` | 여러 화면에서 사용하는 섭씨·화씨 상태 관리 |
-| Axios와 비동기 처리 | `WeatherHomeView.vue`, `WeatherDetailView.vue` | 날씨, 미세먼지, 드라마 API 요청과 오류 처리 |
+| 배운 내용            | 적용한 파일                                      | 적용 방법                                       |
+| -------------------- | ------------------------------------------------ | ----------------------------------------------- |
+| 반응형 상태 `ref`    | `WeatherHomeView.vue`                            | 날씨 목록, 검색어, 선택 도시, 로딩 상태 관리    |
+| 계산된 값 `computed` | `WeatherHomeView.vue`, `WeatherCard.vue`         | 검색 결과, 평균 기온, 단위 변환, 추천 장르 계산 |
+| 반복 렌더링 `v-for`  | `WeatherHomeView.vue`, `DramaRecommendation.vue` | 날씨 카드와 추천 드라마 반복 출력               |
+| 조건부 렌더링 `v-if` | `WeatherHomeView.vue`, `WeatherCard.vue`         | 로딩, 빈 결과, 추가 정보, 기온 라벨 표시        |
+| 이벤트와 수식어      | `SearchBar.vue`, `WeatherCard.vue`               | 입력, Enter 검색, 카드 선택, `@click.stop` 처리 |
+| Props와 Emits        | `SearchBar.vue`, `WeatherCard.vue`               | 부모가 데이터를 전달하고 자식이 이벤트를 전달   |
+| Slot                 | `BaseDashboardCard.vue`                          | 같은 카드 틀에 검색 영역과 목록 영역 삽입       |
+| Vue Router           | `router/index.js`, `WeatherDetailView.vue`       | URL별 View 분리와 동적 상세 페이지 구성         |
+| Pinia                | `configStore.js`                                 | 여러 화면에서 사용하는 섭씨·화씨 상태 관리      |
+| Axios와 비동기 처리  | `WeatherHomeView.vue`, `WeatherDetailView.vue`   | 날씨, 미세먼지, 드라마 API 요청과 오류 처리     |
 
 ## 화면이 실행되는 순서
 
@@ -145,9 +145,7 @@ JavaScript에서는 `.value`로 접근하고 template에서는 바로 사용합�
 const filteredWeatherList = computed(() => {
   const keyword = searchQuery.value.trim()
   if (!keyword) return weatherList.value
-  return weatherList.value.filter((weather) =>
-    weather.name.includes(keyword),
-  )
+  return weatherList.value.filter((weather) => weather.name.includes(keyword))
 })
 ```
 
@@ -158,11 +156,7 @@ const filteredWeatherList = computed(() => {
 `v-for`로 배열에 있는 도시 수만큼 `WeatherCard`를 반복했습니다. `:key`에는 각 도시의 고유한 `id`를 사용했습니다.
 
 ```vue
-<WeatherCard
-  v-for="weather in filteredWeatherList"
-  :key="weather.id"
-  :weather="weather"
-/>
+<WeatherCard v-for="weather in filteredWeatherList" :key="weather.id" :weather="weather" />
 ```
 
 로딩 중, 검색 결과가 있을 때, 결과가 없을 때는 `v-if`, `v-else-if`, `v-else`로 서로 다른 화면을 보여 줍니다.
@@ -187,13 +181,13 @@ WeatherHomeView
 
 ### 6. Vue Router
 
-| URL | 화면 | 역할 |
-| --- | --- | --- |
-| `/` | `WeatherHomeView.vue` | 도시 검색과 날씨 카드 |
+| URL                | 화면                    | 역할                    |
+| ------------------ | ----------------------- | ----------------------- |
+| `/`                | `WeatherHomeView.vue`   | 도시 검색과 날씨 카드   |
 | `/weather/:cityId` | `WeatherDetailView.vue` | 날씨와 추천작 상세 정보 |
-| `/tips` | `WeatherTipsView.vue` | 추천 기준 설명 |
-| `/about` | `WeatherAboutView.vue` | 프로젝트 소개 |
-| 그 외 주소 | `NotFoundView.vue` | 404 화면 |
+| `/tips`            | `WeatherTipsView.vue`   | 추천 기준 설명          |
+| `/about`           | `WeatherAboutView.vue`  | 프로젝트 소개           |
+| 그 외 주소         | `NotFoundView.vue`      | 404 화면                |
 
 ```text
 상세 버튼 클릭
@@ -248,16 +242,16 @@ API 호출에는 Axios와 `async/await`를 사용했습니다. 호출 중에는 
 
 처음에는 날씨 상태 글자만 확인했습니다. 하지만 온도가 달라도 날씨 설명에 `흐림`이 들어가면 모두 미스터리가 추천되는 문제가 있었습니다. 그래서 비와 눈처럼 뚜렷한 날씨를 먼저 확인하고 고온과 저온도 함께 반영하도록 수정했습니다.
 
-| 날씨 또는 기온 | 추천 장르 |
-| --- | --- |
-| 눈 | 판타지 |
-| 비, 소나기, 이슬비 | 감성 드라마 |
-| 28℃ 이상 | 액션 & 어드벤처 |
-| 10℃ 이하 | 힐링 드라마 |
-| 맑음 | 기분 좋은 코미디 |
-| 구름, 흐림, 안개 | 미스터리 |
-| 그 외 23℃ 이상 | 기분 좋은 코미디 |
-| 나머지 | 감성 드라마 |
+| 날씨 또는 기온     | 추천 장르        |
+| ------------------ | ---------------- |
+| 눈                 | 판타지           |
+| 비, 소나기, 이슬비 | 감성 드라마      |
+| 28℃ 이상           | 액션 & 어드벤처  |
+| 10℃ 이하           | 힐링 드라마      |
+| 맑음               | 기분 좋은 코미디 |
+| 구름, 흐림, 안개   | 미스터리         |
+| 그 외 23℃ 이상     | 기분 좋은 코미디 |
+| 나머지             | 감성 드라마      |
 
 추천 기준은 `src/data/dramas.js`로 분리했습니다. 화면 코드와 규칙을 나누어 두면 나중에 기준을 수정하기 쉽다는 것을 알게 되었습니다.
 
@@ -323,13 +317,3 @@ Vue Router의 `createWebHistory()`는 `/weather/city_01` 같은 URL을 사용합
 - 날짜별 추천 기록 저장
 - 강수 확률과 체감온도 추가
 - API 오류 종류에 따른 자세한 안내
-
-## 최종 확인
-
-- `npm run build` 성공
-- OpenWeather 도시 검색 API 정상 응답
-- 현재 날씨와 시간대별 예보 API 정상 응답
-- PM2.5 대기오염 API 정상 응답
-- TMDB 한국 드라마 조회 API 정상 응답
-- Vercel 홈 화면과 상세 경로 정상 응답
-- 상세 페이지 새로고침 시 404 해결
